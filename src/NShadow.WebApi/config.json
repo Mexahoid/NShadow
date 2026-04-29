@@ -1,7 +1,7 @@
 {
   "ShadowOptions": {
 	"Password": "Pa$$w0rd",
-	"Method": "aes-128-gcm",
+	"Method": "aes-256-cfb",
 	"Timeout": "00:00:30"
   }
 }

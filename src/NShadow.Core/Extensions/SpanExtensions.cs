@@ -1,0 +1,86 @@
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
+
+namespace NShadow.Core.Extensions;
+
+/// <summary>
+/// A collection of extension methods that directly or indirectly augment the <see cref="Span{T}"/> class.
+/// </summary>
+public static class SpanExtensions
+{
+    /// <param name="x">The first span that will be compared.</param>
+    extension(ReadOnlySpan<byte> x)
+    {
+        /// <summary>
+        /// Compares the contents of two spans for equality in constant time.
+        /// </summary>
+        /// <param name="y">The second span that will be compared.</param>
+        public bool CompareInConstantTime(ReadOnlySpan<byte> y)
+        {
+            var max = x.Length < y.Length ? y.Length : x.Length;
+            var min = x.Length > y.Length ? y.Length : x.Length;
+            var offset = 0;
+            var result = 0;
+            var z = (Span<byte>)[byte.MinValue, byte.MaxValue];
+
+            if (Vector.IsHardwareAccelerated)
+            {
+                var vectorX = MemoryMarshal.Cast<byte, Vector<byte>>(x[..min]);
+                var vectorY = MemoryMarshal.Cast<byte, Vector<byte>>(y[..min]);
+                var vectorCount = vectorX.Length;
+                var vectorResult = Vector<byte>.Zero;
+
+                for (var i = offset; (i < vectorCount); i++)
+                {
+                    vectorResult |= (vectorX[i] ^ vectorY[i]);
+                }
+
+                offset = Vector<byte>.Count * vectorCount;
+                result |= Vector<byte>.Zero == vectorResult ? byte.MinValue : byte.MaxValue;
+            }
+
+            for (var i = offset; i < min; i++)
+            {
+                result |= x[i] ^ y[i];
+            }
+
+            for (var i = min; i < max; i++)
+            {
+                result |= z[0] ^ z[1];
+            }
+
+            return 0 == result;
+        }
+
+        /// <summary>
+        /// Performs an in-place exclusive or operation between the elements of two spans; only the second span is modified.
+        /// </summary>
+        /// <param name="y">The second span; contents will potentially be modified.</param>
+        public ReadOnlySpan<byte> Xor(Span<byte> y)
+        {
+            var count = y.Length < x.Length ? y.Length : x.Length;
+            var offset = 0;
+
+            if (Vector.IsHardwareAccelerated)
+            {
+                var vectorDestination = MemoryMarshal.Cast<byte, Vector<byte>>(y[..count]);
+                var vectorSource = MemoryMarshal.Cast<byte, Vector<byte>>(x[..count]);
+                var vectorCount = vectorDestination.Length;
+
+                for (var i = offset; i < vectorCount; i++)
+                {
+                    vectorDestination[i] ^= vectorSource[i];
+                }
+
+                offset = Vector<byte>.Count * vectorCount;
+            }
+
+            for (var i = offset; i < count; i++)
+            {
+                y[i] ^= x[i];
+            }
+
+            return y;
+        }
+    }
+}
