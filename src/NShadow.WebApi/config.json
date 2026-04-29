@@ -1,6 +1,5 @@
 {
   "ShadowOptions": {
-	"Port": 6666,
 	"Password": "Pa$$w0rd",
 	"Method": "aes-128-gcm",
 	"Timeout": "00:00:30"
