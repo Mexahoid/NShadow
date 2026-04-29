@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/NShadow.Core/NShadow.Core.csproj" Id="d58f5ff8-59ec-438c-9670-7e3f2678505c" />
+  <Project Path="src/NShadow.WebApi/NShadow.WebApi.csproj" />
+</Solution>
